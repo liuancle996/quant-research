@@ -212,6 +212,18 @@ elif st.session_state.df_result is not None:
 
 st.markdown("---")
 st.caption(
-    "数据来源: hikyuu HDF5 | 数据截止: 最近交易日 | "
+    "数据来源: hikyuu HDF5 | "
+    "数据截止: 最近交易日 | "
     "非实时行情，仅供参考"
 )
+
+# 显示数据时间范围
+try:
+    from screener.hikyuu_adapter import sm, Query
+    ref = sm["sz000001"]
+    k = ref.get_kdata(Query(-1))
+    if len(k) > 0:
+        st.sidebar.divider()
+        st.sidebar.caption(f"📅 数据日期: {str(k[0].datetime)[:10]}")
+except Exception:
+    pass
