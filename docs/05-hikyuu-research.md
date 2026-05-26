@@ -74,3 +74,11 @@ python hikyuu/data/pytdx_to_h5.py
 ```bash
 unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
 ```
+
+## 六、GLIBCXX 兼容性问题
+
+conda 环境的 libstdc++ 版本（GLIBCXX_3.4.26）低于 hikyuu 要求（3.4.31+）。启动任何使用 hikyuu 的脚本前需 preload 系统库：
+
+```bash
+export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+```

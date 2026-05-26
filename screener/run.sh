@@ -10,6 +10,9 @@ cd "$(dirname "$0")/.."
 # 必须取消代理，否则 hikyuu 网络请求失败
 unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
 
+# conda 的 libstdc++ 版本过低，需用系统库（GLIBCXX_3.4.31+）
+export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+
 echo "📊 启动 A股筛选器..."
 echo "   访问地址: http://localhost:8082"
 echo "   数据目录: ~/stock/"
