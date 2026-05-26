@@ -5,13 +5,16 @@ Streamlit 前端 — A股筛选器
 布局: 左侧筛选面板 + 右侧结果表格 + 统计分布图
 """
 
-import time
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import time
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from .engine import screen
+from screener.engine import screen
 
 # ── 页面配置 ──────────────────────────────────────────────
 st.set_page_config(

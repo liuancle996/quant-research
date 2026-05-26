@@ -10,7 +10,7 @@ from typing import Optional
 
 import pandas as pd
 
-from .hikyuu_adapter import sm, Query, constant
+from screener.hikyuu_adapter import sm, Query, constant
 
 logger = logging.getLogger(__name__)
 
