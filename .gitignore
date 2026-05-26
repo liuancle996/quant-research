@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hermes
+.hermes/
+.claude/
+
+# Sensitive — 不要提交
+.env
+*.key
+*.pem
+config.yaml
+**/config.json
+
+# Data — 太大，不提交
+*.h5
+*.hdf5
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Archive
+.archive-*
+
+# Upstream repos — 上游源码不提交
+repos/
+
+# Streamlit
+.streamlit/
+
+# RAG
+.rag-*/
+chroma.sqlite3
+
+# Factor lab
+factor_lab/
+.pid_*
