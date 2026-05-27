@@ -234,7 +234,7 @@ else:
     if decay is not None and not decay.empty:
         col_left, col_right = st.columns(2)
     else:
-        col_left = st
+        col_left = st.container()
         col_right = None
 
     # IC 衰减
@@ -261,7 +261,7 @@ else:
 
     # 分层收益
     if qr is not None and not qr.empty:
-        target_col = col_right if col_right else st
+        target_col = col_right if col_right else st.container()
         with target_col:
             st.subheader("📊 分层收益")
             fig = go.Figure()
