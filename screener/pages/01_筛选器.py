@@ -24,10 +24,8 @@ st.set_page_config(
 
 st.title("📊 筛选器")
 
-# ── 侧边栏：筛选条件 ─────────────────────────────────────
-with st.sidebar:
-    st.header("筛选条件")
-
+# ── 筛选条件（主内容区 expander）─────────────────────────
+with st.expander("🔍 筛选条件", expanded=True):
     markets = st.multiselect(
         "交易所",
         options=["SH", "SZ", "BJ"],
