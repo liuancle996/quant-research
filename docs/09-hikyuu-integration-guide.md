@@ -179,27 +179,55 @@ constant.STOCKTYPE_INDEX   # 2 = 指数
 - 端口：8082
 - 布局：左侧筛选条件 + 右侧结果表格 + 图表
 
-## 六、交付物 + 价值
+## 六、运行环境要求
 
-### 交付物
+### 代理
 
-| 文件 | 说明 |
-|------|------|
-| `screener/hikyuu_adapter.py` | hikyuu 单例适配层 |
-| `screener/engine.py` | 筛选引擎 |
-| `screener/app.py` | Streamlit 前端 |
-| `screener/run.sh` | 启动脚本 |
-| `docs/09-hikyuu-integration-guide.md` | 本文档 |
+服务器代理 `localhost:8118` 不可用，启动前必须：
+
+```bash
+unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+```
+
+### GLIBCXX 兼容性
+
+conda 的 libstdc++ 版本（GLIBCXX_3.4.26）低于 hikyuu 要求（3.4.31+）。启动前必须 preload 系统库：
+
+```bash
+export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+```
+
+完整启动命令见 `screener/run.sh`。
+
+## 七、交付物 + 价值
+
+### 当前项目文件（2026-05-26）
+
+```
+screener/
+├── hikyuu_adapter.py    hikyuu 单例导入
+├── engine.py            筛选引擎 (screen + block)
+├── app.py               Streamlit 多页面入口
+├── details.py           股票详情 (K线+指标)
+├── stats.py             市场统计 (指数/排名)
+├── blocks.py            板块查询
+├── search.py            股票搜索
+├── favorites.py         自选股收藏
+├── run.sh               一键启动
+└── pages/
+    ├── 01_筛选器.py
+    ├── 02_股票详情.py
+    ├── 03_市场统计.py
+    ├── 04_仪表盘.py
+    └── 05_自选股.py
+```
 
 ### 价值
 
 | 能做的 | 不能做的 |
 |--------|---------|
-| ✅ 按涨跌幅/成交量/ST 筛选全A股 | ❌ 不能按流通市值筛选（无数据） |
-| ✅ 浏览器 8082 直接操作 | ❌ 首次全市场筛选约 2-3 分钟 |
-| ✅ 结果排序 + CSV 导出 | ❌ 实时行情（盘后数据） |
+| ✅ 按涨跌幅/成交量/ST/行业筛选全A股 | ❌ 不能按流通市值筛选（无数据） |
+| ✅ 股票详情：交互式K线 + MA + MACD/RSI/KDJ | ❌ 实时行情（盘后数据） |
+| ✅ 仪表盘：指数 + 涨跌分布 + 热门板块 + 热力图 | |
+| ✅ 自选股收藏 + 管理 | |
 | ✅ hikyuu 正确用法模板，后续项目复用 | |
-
----
-
-*方案已对齐，确认后进入代码编写。*
