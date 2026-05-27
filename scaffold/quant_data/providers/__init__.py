@@ -1,1 +1,0 @@
-"""quant-data providers"""
