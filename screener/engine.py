@@ -17,8 +17,30 @@ logger = logging.getLogger(__name__)
 
 # ── 步骤 1：候选池 ─────────────────────────────────────────
 
-def _get_candidates(markets: list[str]) -> list:
-    """遍历 StockManager，返回符合条件的 A 股列表。"""
+def _get_candidates(
+    markets: list[str],
+    block_category: Optional[str] = None,
+    block_name: Optional[str] = None,
+) -> list:
+    """遍历 StockManager，返回符合条件的 A 股列表。
+
+    当指定 block_category + block_name 时，仅从该板块取股票。
+    """
+    if block_category and block_name:
+        from screener.blocks import get_block_stocks
+
+        stocks = get_block_stocks(block_category, block_name)
+        candidates = []
+        for s in stocks:
+            if s.type != constant.STOCKTYPE_A:
+                continue
+            if not s.valid:
+                continue
+            if s.market not in markets:
+                continue
+            candidates.append(s)
+        return candidates
+
     stock_list = list(sm.get_stock_list())
     if not stock_list:
         raise RuntimeError(
@@ -139,6 +161,8 @@ def screen(
     top_n: int = 50,
     sort_by: str = "pct_change",
     ascending: bool = False,
+    block_category: Optional[str] = None,
+    block_name: Optional[str] = None,
 ) -> pd.DataFrame:
     """
     A股筛选主函数。
@@ -163,6 +187,10 @@ def screen(
         排序字段。
     ascending : bool, default False
         True=升序, False=降序。
+    block_category : str or None, default None
+        板块分类。'行业板块' / '概念板块'。指定后仅从该板块筛选。
+    block_name : str or None, default None
+        板块名称。'半导体' / '保险' 等。需与 block_category 同时指定。
 
     Returns
     -------
@@ -171,7 +199,7 @@ def screen(
     if markets is None:
         markets = ["SH", "SZ"]
 
-    candidates = _get_candidates(markets)
+    candidates = _get_candidates(markets, block_category, block_name)
     results, skipped = _calc_and_filter(
         candidates, lookback_days, min_pct, max_pct, min_volume, exclude_st,
     )

@@ -20,6 +20,9 @@ st.set_page_config(
 
 # ── 定义页面 ──
 pages = {
+    "仪表盘": [
+        st.Page("pages/04_仪表盘.py", title="仪表盘", icon="🏠"),
+    ],
     "筛选分析": [
         st.Page("pages/01_筛选器.py", title="筛选器", icon="🔍"),
         st.Page("pages/02_股票详情.py", title="股票详情", icon="📈"),

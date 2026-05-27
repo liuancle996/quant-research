@@ -68,6 +68,38 @@ with st.sidebar:
 
     exclude_st = st.checkbox("排除 ST", value=True)
 
+    st.divider()
+    st.subheader("板块筛选")
+    block_disabled = False
+    block_category_options = ["不限", "行业板块", "概念板块"]
+    block_category_label = st.selectbox(
+        "板块分类",
+        options=block_category_options,
+        index=0,
+        key="blk_cat",
+    )
+    block_name = None
+    block_category = None
+    if block_category_label == "不限":
+        block_name_options = ["不限"]
+        block_disabled = True
+    else:
+        from screener.blocks import get_block_list
+
+        block_category = block_category_label
+        blk_list = get_block_list(block_category)
+        block_name_options = ["不限"] + [b["name"] for b in blk_list]
+
+    block_name_label = st.selectbox(
+        "板块名称",
+        options=block_name_options,
+        index=0,
+        key="blk_name",
+        disabled=block_disabled,
+    )
+    if block_name_label and block_name_label != "不限":
+        block_name = block_name_label
+
     st.subheader("排序")
     col3, col4 = st.columns(2)
     with col3:
@@ -102,7 +134,10 @@ if run_button:
         st.error("请至少选择一个交易所。")
     else:
         status = st.empty()
-        status.info("⏳ 正在全市场筛选，请稍候...")
+        block_info = ""
+        if block_category and block_name:
+            block_info = f"（板块: {block_category} - {block_name}）"
+        status.info(f"⏳ 正在筛选{block_info}，请稍候...")
 
         try:
             start_ts = time.time()
@@ -116,6 +151,8 @@ if run_button:
                 top_n=top_n,
                 sort_by=sort_by,
                 ascending=ascending,
+                block_category=block_category,
+                block_name=block_name,
             )
             elapsed = time.time() - start_ts
             st.session_state.df_result = df_result
