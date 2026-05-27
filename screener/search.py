@@ -43,7 +43,8 @@ def search_stocks(keyword: str, top_n: int = 20) -> list[dict]:
         if not s.valid:
             continue
 
-        code = s.market_code  # e.g. "000001"
+        code = s.market_code[len(s.market):]  # 纯数字代码 "000001"
+        full_code = s.market_code              # "SZ000001" 格式
         name = s.name
 
         # 计算匹配得分
@@ -71,7 +72,7 @@ def search_stocks(keyword: str, top_n: int = 20) -> list[dict]:
         latest_price = round(float(k[-1].close), 2)
 
         results.append({
-            "code": code,
+    "code": full_code,
             "name": name,
             "market": s.market,
             "latest_price": latest_price,

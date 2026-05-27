@@ -37,15 +37,14 @@ if search_query and search_query.strip():
     if results:
         # 如果只有一个精确匹配，直接选中
         if len(results) == 1:
-            selected_code = f"{results[0]['market'].lower()}{results[0]['code']}"
+            selected_code = results[0]["code"]
         else:
             search_results = results
-            # 显示搜索选择器
             options = [f"{r['code']} — {r['name']} ({r['market']})  ¥{r['latest_price']:.2f}" for r in results]
             selected_label = st.selectbox("请选择股票", options, key="detail_select")
             if selected_label:
                 idx = options.index(selected_label)
-                selected_code = f"{results[idx]['market'].lower()}{results[idx]['code']}"
+                selected_code = results[idx]["code"]
     else:
         st.info(f"未找到匹配 \"{search_query}\" 的股票")
 
