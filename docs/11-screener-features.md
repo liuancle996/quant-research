@@ -143,13 +143,15 @@ blocks = sm.get_block_list()
 | get_top_blocks | `(n: int=10) -> list[dict]` | 行业板块涨幅 Top N（默认 10） |
 | get_block_stock_details | `(category, name) -> list[dict]` | 板块内每只股票详情（代码/名称/最新价/涨跌幅/成交量） |
 
-### 7.3 文件变更清单
+### 7.4 筛选器 UI 布局优化
+
+筛选条件从侧边栏移到主内容区域顶部，使用 `st.expander("筛选条件", expanded=True)` 包裹。默认展开，方便首次使用；可折叠，方便查看结果时获得更大显示空间。
 
 | 文件 | 操作 | 说明 |
 |------|------|------|
 | `screener/blocks.py` | 修改 | 新增 get_block_stock_details，n 默认改为 10 |
 | `screener/pages/04_仪表盘.py` | 修改 | 数据日期 / 板块数 slider / 板块明细展开 |
-| `screener/pages/01_筛选器.py` | 已有 | — |
+| `screener/pages/01_筛选器.py` | 修改 | 筛选条件从侧边栏移到 expander |
 | `screener/engine.py` | 已有 | — |
 | `screener/app.py` | 已有 | — |
 
