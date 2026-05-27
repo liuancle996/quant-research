@@ -3,7 +3,7 @@
 每个函数返回一个配置好的 hikyuu Indicator，设置 .name 后即可作为 MF 的因子输入。
 """
 
-from ..hikyuu_adapter import MA, CLOSE, ROC, STD, HHV, LLV, REF
+from ..hikyuu_adapter import MA, CLOSE, ROC, STD, HHV, LLV, REF, VOL
 
 
 def momentum(n: int = 20) -> "Indicator":
@@ -43,7 +43,6 @@ def price_position(n: int = 60) -> "Indicator":
 
 def volume_ratio(n: int = 5, m: int = 20) -> "Indicator":
     """量比因子：短期均量 / 长期均量"""
-    from hikyuu.indicator import VOL  # VOL 不在 interactive 的 * 导出中
     short_vol = MA(VOL(), n)
     long_vol = MA(VOL(), m)
     ind = short_vol / (long_vol + 1e-10)
