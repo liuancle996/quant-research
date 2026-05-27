@@ -28,6 +28,9 @@ pages = {
         st.Page("pages/02_股票详情.py", title="股票详情", icon="📈"),
         st.Page("pages/03_市场统计.py", title="市场统计", icon="📊"),
     ],
+    "因子研究": [
+        st.Page("pages/06_因子实验室.py", title="因子实验室", icon="🧪"),
+    ],
     "自选股": [
         st.Page("pages/05_自选股.py", title="自选股", icon="⭐"),
     ],
