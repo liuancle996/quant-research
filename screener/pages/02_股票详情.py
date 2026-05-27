@@ -1,7 +1,7 @@
 """
 页面：股票详情
 ============
-搜索股票 + 查看日 K 线图 + 均线叠加。
+搜索股票 + 查看日 K 线图 + 均线叠加 + 技术指标副图 + 自选股收藏。
 """
 
 import sys
@@ -12,6 +12,7 @@ import streamlit as st
 
 from screener.search import search_stocks
 from screener.details import get_stock_info, get_kline_data, plot_kline, format_volume
+from screener.favorites import add_favorite, remove_favorite, is_favorite
 
 st.set_page_config(
     page_title="股票详情 — A股筛选器",
@@ -52,14 +53,27 @@ if search_query and search_query.strip():
 if selected_code:
     info = get_stock_info(selected_code)
     if info and info.get("valid"):
-        # 基本信息卡片
-        col1, col2, col3, col4 = st.columns(4)
+        # 基本信息卡片 — 含收藏按钮
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
         with col1:
-            st.metric(
-                label=f"{info['name']}（{info['code']}）",
-                value=f"¥{info['latest_price']:.2f}",
-                delta=f"{info['pct_change']:+.2f}%",
-            )
+            fav = is_favorite(selected_code)
+            star_label = f"{'⭐' if fav else '☆'} 收藏" if not fav else "⭐ 已收藏"
+            col_name, col_star = st.columns([3, 1])
+            with col_name:
+                st.metric(
+                    label=f"{info['name']}（{info['code']}）",
+                    value=f"¥{info['latest_price']:.2f}",
+                    delta=f"{info['pct_change']:+.2f}%",
+                )
+            with col_star:
+                if fav:
+                    if st.button("★ 取消收藏", key=f"fav_remove_{selected_code}", use_container_width=True):
+                        remove_favorite(selected_code)
+                        st.rerun()
+                else:
+                    if st.button("☆ 加入收藏", key=f"fav_add_{selected_code}", use_container_width=True):
+                        add_favorite(selected_code, info["name"])
+                        st.rerun()
         with col2:
             market_label = {"SH": "上证", "SZ": "深证", "BJ": "北证"}.get(info["market"], info["market"])
             st.metric("交易所", market_label)
@@ -69,13 +83,19 @@ if selected_code:
             st.metric("成交量", format_volume(info["volume"]))
 
         # ── K 线设置 ──
-        col_ma, col_range = st.columns([1, 1])
+        col_ma, col_ind, col_range = st.columns([1, 1, 1])
         with col_ma:
             ma_options = st.multiselect(
                 "均线叠加",
                 options=[5, 10, 20, 60],
                 default=[5, 10, 20],
                 format_func=lambda x: f"MA{x}",
+            )
+        with col_ind:
+            indicator_options = st.multiselect(
+                "指标叠加",
+                options=["MACD", "RSI", "KDJ"],
+                default=[],
             )
         with col_range:
             range_options = {
@@ -95,7 +115,12 @@ if selected_code:
         df = get_kline_data(selected_code, lookback=lookback)
         if df is not None and len(df) > 0:
             title = f"{info['name']}（{info['code']}）— 日K线图"
-            fig = plot_kline(df, mas=ma_options if ma_options else None, title=title)
+            fig = plot_kline(
+                df,
+                mas=ma_options if ma_options else None,
+                indicators=indicator_options if indicator_options else None,
+                title=title,
+            )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("未获取到 K 线数据。")

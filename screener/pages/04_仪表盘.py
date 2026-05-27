@@ -133,6 +133,62 @@ with st.spinner("正在计算板块涨跌幅..."):
     top_blocks = get_top_blocks(n=top_n, category="行业板块", exclude_st=True)
 
 if top_blocks:
+    # ── 热力图（Plotly Treemap） ──
+    st.subheader("🗺️ 板块热力图")
+    try:
+        import plotly.express as px
+
+        # 构建 treemap 数据
+        treemap_labels = [b["name"] for b in top_blocks]
+        treemap_values = [b["stock_count"] for b in top_blocks]
+        treemap_colors = [b["avg_pct"] for b in top_blocks]
+
+        treemap_df = pd.DataFrame({
+            "板块": treemap_labels,
+            "股票数": treemap_values,
+            "平均涨幅": treemap_colors,
+            "上涨家数": [b["up_count"] for b in top_blocks],
+            "下跌家数": [b["down_count"] for b in top_blocks],
+        })
+
+        fig_treemap = px.treemap(
+            treemap_df,
+            path=["板块"],
+            values="股票数",
+            color="平均涨幅",
+            color_continuous_scale=[
+                (0.0, "#1a9850"),    # 绿色（跌）
+                (0.5, "#ffffbf"),    # 黄色（平）
+                (1.0, "#d73027"),    # 红色（涨）
+            ],
+            color_continuous_midpoint=0.0,
+            hover_data={
+                "板块": True,
+                "股票数": True,
+                "平均涨幅": True,
+                "上涨家数": True,
+                "下跌家数": True,
+            },
+        )
+        fig_treemap.update_traces(
+            textinfo="label+value",
+            hovertemplate=(
+                "<b>%{label}</b><br>"
+                "股票数: %{value}<br>"
+                "平均涨幅: %{color:+.2f}%<br>"
+                "上涨/下跌: %{customdata[0]}/%{customdata[1]}<br>"
+                "<extra></extra>"
+            ),
+        )
+        fig_treemap.update_layout(
+            height=500,
+            margin=dict(l=10, r=10, t=10, b=10),
+        )
+        st.plotly_chart(fig_treemap, use_container_width=True)
+    except Exception as e:
+        st.warning(f"热力图渲染失败: {e}")
+
+    # ── 板块明细列表 ──
     for i, blk in enumerate(top_blocks, 1):
         direction = "📈" if blk["avg_pct"] >= 0 else "📉"
         label = f"**#{i}** {direction} **{blk['name']}** &nbsp;&nbsp; "
