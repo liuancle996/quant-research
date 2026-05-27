@@ -26,13 +26,6 @@ st.title("📊 筛选器")
 
 # ── 筛选条件（主内容区 expander）─────────────────────────
 with st.expander("🔍 筛选条件", expanded=True):
-    markets = st.multiselect(
-        "交易所",
-        options=["SH", "SZ", "BJ"],
-        default=["SH", "SZ"],
-        format_func=lambda x: {"SH": "上证", "SZ": "深证", "BJ": "北证"}.get(x, x),
-    )
-
     lookback_options = {
         "5 日": 5,
         "10 日": 10,
@@ -41,66 +34,88 @@ with st.expander("🔍 筛选条件", expanded=True):
         "120 日(半年)": 120,
         "250 日(1年)": 250,
     }
-    lookback_label = st.selectbox(
-        "时间区间",
-        options=list(lookback_options.keys()),
-        index=2,
-    )
+
+    # 第 1 行：交易所 | 时间区间 | 排除 ST | 返回条数
+    col_a1, col_a2, col_a3, col_a4 = st.columns(4)
+    with col_a1:
+        markets = st.multiselect(
+            "交易所",
+            options=["SH", "SZ", "BJ"],
+            default=["SH", "SZ"],
+            format_func=lambda x: {"SH": "上证", "SZ": "深证", "BJ": "北证"}.get(x, x),
+        )
+    with col_a2:
+        lookback_label = st.selectbox(
+            "时间区间",
+            options=list(lookback_options.keys()),
+            index=2,
+        )
+    with col_a3:
+        exclude_st = st.checkbox("排除 ST", value=True)
+    with col_a4:
+        top_n = st.slider("返回条数", min_value=10, max_value=500, value=50, step=10)
+
     lookback_days = lookback_options[lookback_label]
 
-    st.subheader("涨跌幅 (%)")
-    col1, col2 = st.columns(2)
-    with col1:
+    # 第 2 行：最小涨幅 | 最大涨幅 | 最小日均成交量 | (空)
+    col_b1, col_b2, col_b3, col_b4 = st.columns(4)
+    with col_b1:
         min_pct = st.number_input(
-            "最小", value=None, step=1.0, format="%f", placeholder="不限",
+            "最小涨幅(%)", value=None, step=1.0, format="%f", placeholder="不限",
         )
-    with col2:
+    with col_b2:
         max_pct = st.number_input(
-            "最大", value=None, step=1.0, format="%f", placeholder="不限",
+            "最大涨幅(%)", value=None, step=1.0, format="%f", placeholder="不限",
         )
+    with col_b3:
+        min_volume = st.number_input(
+            "最小日均成交量(股)",
+            value=None, step=10000, format="%d", placeholder="不限",
+        )
+    with col_b4:
+        pass
 
-    min_volume = st.number_input(
-        "最小日均成交量 (股)",
-        value=None, step=10000, format="%d", placeholder="不限",
-    )
+    # 第 3 行：板块分类 | 板块名称 | (空) | (空)
+    col_c1, col_c2, col_c3, col_c4 = st.columns(4)
+    with col_c1:
+        block_disabled = False
+        block_category_options = ["不限", "行业板块", "概念板块"]
+        block_category_label = st.selectbox(
+            "板块分类",
+            options=block_category_options,
+            index=0,
+            key="blk_cat",
+        )
+    with col_c2:
+        block_name = None
+        block_category = None
+        if block_category_label == "不限":
+            block_name_options = ["不限"]
+            block_disabled = True
+        else:
+            from screener.blocks import get_block_list
 
-    exclude_st = st.checkbox("排除 ST", value=True)
+            block_category = block_category_label
+            blk_list = get_block_list(block_category)
+            block_name_options = ["不限"] + [b["name"] for b in blk_list]
 
-    st.divider()
-    st.subheader("板块筛选")
-    block_disabled = False
-    block_category_options = ["不限", "行业板块", "概念板块"]
-    block_category_label = st.selectbox(
-        "板块分类",
-        options=block_category_options,
-        index=0,
-        key="blk_cat",
-    )
-    block_name = None
-    block_category = None
-    if block_category_label == "不限":
-        block_name_options = ["不限"]
-        block_disabled = True
-    else:
-        from screener.blocks import get_block_list
+        block_name_label = st.selectbox(
+            "板块名称",
+            options=block_name_options,
+            index=0,
+            key="blk_name",
+            disabled=block_disabled,
+        )
+        if block_name_label and block_name_label != "不限":
+            block_name = block_name_label
+    with col_c3:
+        pass
+    with col_c4:
+        pass
 
-        block_category = block_category_label
-        blk_list = get_block_list(block_category)
-        block_name_options = ["不限"] + [b["name"] for b in blk_list]
-
-    block_name_label = st.selectbox(
-        "板块名称",
-        options=block_name_options,
-        index=0,
-        key="blk_name",
-        disabled=block_disabled,
-    )
-    if block_name_label and block_name_label != "不限":
-        block_name = block_name_label
-
-    st.subheader("排序")
-    col3, col4 = st.columns(2)
-    with col3:
+    # 第 4 行：排序字段 | 升序checkbox | | 🔍 开始筛选
+    col_d1, col_d2, col_d3, col_d4 = st.columns(4)
+    with col_d1:
         sort_by = st.selectbox(
             "排序字段",
             options=["pct_change", "avg_volume", "latest_volume", "latest_price"],
@@ -111,12 +126,12 @@ with st.expander("🔍 筛选条件", expanded=True):
                 "latest_price": "最新价",
             }.get(x, x),
         )
-    with col4:
+    with col_d2:
         ascending = st.checkbox("升序", value=False)
-
-    top_n = st.slider("返回条数", min_value=10, max_value=500, value=50, step=10)
-
-    run_button = st.button("🔍 开始筛选", type="primary", use_container_width=True)
+    with col_d3:
+        pass
+    with col_d4:
+        run_button = st.button("🔍 开始筛选", type="primary", use_container_width=True)
 
 # ── 主区域 ────────────────────────────────────────────────
 
