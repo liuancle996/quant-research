@@ -69,7 +69,7 @@ def get_block_stocks(category: str, name: str) -> list:
 
 
 def get_top_blocks(
-    n: int = 5,
+    n: int = 10,
     category: str = "行业板块",
     exclude_st: bool = True,
 ) -> list[dict]:
@@ -194,3 +194,60 @@ def get_block_summary(
         "up_count": sum(1 for p in pct_list if p > 0),
         "down_count": sum(1 for p in pct_list if p < 0),
     }
+
+
+def get_block_stock_details(
+    category: str,
+    name: str,
+    exclude_st: bool = True,
+) -> list[dict]:
+    """
+    获取板块内每只股票的详细信息（代码、名称、最新价、涨跌幅、成交量）。
+
+    Parameters
+    ----------
+    category : str
+        板块分类。
+    name : str
+        板块名称。
+    exclude_st : bool, default True
+        是否排除 ST 股票。
+
+    Returns
+    -------
+    list[dict]
+        [{
+            "code": str, "name": str,
+            "latest_price": float, "pct_change": float, "volume": int
+        }, ...]
+        按涨跌幅降序排列。
+    """
+    stocks = get_block_stocks(category, name)
+    results = []
+
+    for s in stocks:
+        if not s.valid:
+            continue
+        if exclude_st and "ST" in s.name:
+            continue
+        try:
+            k = s.get_kdata(Query(-2))
+        except Exception:
+            continue
+        if len(k) < 2:
+            continue
+        prev = float(k[0].close)
+        cur = float(k[-1].close)
+        if prev == 0:
+            continue
+        pct = round((cur / prev - 1.0) * 100.0, 2)
+        results.append({
+            "code": s.market_code,
+            "name": s.name,
+            "latest_price": round(cur, 2),
+            "pct_change": pct,
+            "volume": int(k[-1].volume),
+        })
+
+    results.sort(key=lambda x: x["pct_change"], reverse=True)
+    return results

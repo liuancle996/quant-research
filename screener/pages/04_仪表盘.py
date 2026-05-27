@@ -1,7 +1,7 @@
 """
 页面：仪表盘（默认首页）
 ========================
-大盘概览（四大指数卡片）+ 涨跌家数统计 + 热门板块 Top 5。
+大盘概览（四大指数卡片）+ 涨跌家数统计 + 热门板块（可配置 Top N + 板块明细展开）。
 """
 
 import sys
@@ -11,8 +11,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import streamlit as st
 import pandas as pd
 
+from screener.hikyuu_adapter import sm, Query
 from screener.stats import get_all_index_cards, get_index_card, get_up_down_stats
-from screener.blocks import get_top_blocks
+from screener.blocks import get_top_blocks, get_block_stock_details
 
 st.set_page_config(
     page_title="仪表盘 — A股筛选器",
@@ -21,6 +22,19 @@ st.set_page_config(
 )
 
 st.title("🏠 仪表盘")
+
+# ── 数据时间标识 ────────────────────────────────────────────
+try:
+    s = sm["sz000001"]
+    k = s.get_kdata(Query(-1))
+    if len(k) > 0:
+        data_date = str(k[-1].datetime)[:10]
+    else:
+        data_date = "暂无数据"
+except Exception:
+    data_date = "暂无数据"
+
+st.caption(f"📅 数据日期: {data_date}")
 
 # ── 第 1 行：四大指数卡片 ──────────────────────────────────
 st.subheader("📈 大盘概览")
@@ -108,31 +122,45 @@ if stats and stats["total"] > 0:
 else:
     st.info("暂无涨跌统计数据。")
 
-# ── 第 3 行：热门板块 Top 5 ────────────────────────────────
+# ── 第 3 行：热门板块（可配置 Top N + 板块明细展开）────────
 st.markdown("---")
-st.subheader("🔥 热门板块 Top 5")
+st.subheader("🔥 热门板块")
+
+# 板块数 slider：5-30，步长 5，默认 10
+top_n = st.slider("显示板块数量", min_value=5, max_value=30, value=10, step=5)
 
 with st.spinner("正在计算板块涨跌幅..."):
-    top_blocks = get_top_blocks(n=5, category="行业板块", exclude_st=True)
+    top_blocks = get_top_blocks(n=top_n, category="行业板块", exclude_st=True)
 
 if top_blocks:
-    top_blocks_data = []
     for i, blk in enumerate(top_blocks, 1):
         direction = "📈" if blk["avg_pct"] >= 0 else "📉"
-        top_blocks_data.append({
-            "排名": i,
-            "板块": f"{direction} {blk['name']}",
-            "平均涨幅": f"{blk['avg_pct']:+.2f}%",
-            "上涨/下跌": f"{blk['up_count']}/{blk['down_count']}",
-            "参与统计": f"{blk['stock_count']} 只",
-        })
+        label = f"**#{i}** {direction} **{blk['name']}** &nbsp;&nbsp; "
+        label += f"平均涨幅: {blk['avg_pct']:+.2f}% &nbsp;&nbsp; "
+        label += f"上涨/下跌: {blk['up_count']}/{blk['down_count']} &nbsp;&nbsp; "
+        label += f"统计: {blk['stock_count']} 只"
 
-    df_blocks = pd.DataFrame(top_blocks_data)
-    st.dataframe(
-        df_blocks,
-        use_container_width=True,
-        hide_index=True,
-    )
+        with st.expander(label, expanded=False):
+            details = get_block_stock_details("行业板块", blk["name"])
+            if details:
+                detail_rows = []
+                for j, d in enumerate(details, 1):
+                    detail_rows.append({
+                        "排名": j,
+                        "代码": d["code"],
+                        "名称": d["name"],
+                        "最新价": f"¥{d['latest_price']:.2f}",
+                        "涨跌幅": f"{d['pct_change']:+.2f}%",
+                        "成交量": f"{d['volume']:,}",
+                    })
+                df_detail = pd.DataFrame(detail_rows)
+                st.dataframe(
+                    df_detail,
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            else:
+                st.caption("该板块内暂无符合条件的股票数据。")
 else:
     st.info("暂无板块数据。")
 
@@ -140,5 +168,5 @@ st.markdown("---")
 st.caption(
     "数据来源: hikyuu HDF5 | "
     "板块涨跌幅为板块内所有满足条件的股票的平均值 | "
-    "数据截止: 最近交易日"
+    f"数据截止: {data_date}"
 )

@@ -18,6 +18,7 @@ from screener.stats import (
     get_top_volume,
     get_up_down_stats,
 )
+from screener.hikyuu_adapter import sm, Query
 
 st.set_page_config(
     page_title="市场统计 — A股筛选器",
@@ -26,6 +27,19 @@ st.set_page_config(
 )
 
 st.title("📊 市场统计")
+
+# ── 数据时间标识 ────────────────────────────────────────────
+try:
+    s = sm["sz000001"]
+    k = s.get_kdata(Query(-1))
+    if len(k) > 0:
+        data_date = str(k[-1].datetime)[:10]
+    else:
+        data_date = "暂无数据"
+except Exception:
+    data_date = "暂无数据"
+
+st.caption(f"📅 数据日期: {data_date}")
 
 # ── 大盘指数行情 ──────────────────────────────────────────
 st.subheader("🏛️ 大盘指数")
