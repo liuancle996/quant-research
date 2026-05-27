@@ -34,6 +34,7 @@ config.yaml
 *.db
 *.sqlite
 *.sqlite3
+*.parquet
 data/
 
 # Archive
@@ -49,6 +50,6 @@ repos/
 .rag-*/
 chroma.sqlite3
 
-# Factor lab
-factor_lab/
+# Factor lab cache
+factor_lab/cache/
 .pid_*
