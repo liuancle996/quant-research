@@ -101,9 +101,28 @@ blocks = sm.get_block_list()
 
 | 区域 | 内容 |
 |------|------|
-| 第 1 行：指数卡片 | 4 个 st.metric：上证指数 / 深证成指 / 沪深300 / 创业板指，显示最新价 + 涨跌幅 |
-| 第 2 行：涨跌统计 | 涨/跌/平 家数 + 柱子图 |
-| 第 3 行：热门板块 | 行业板块按涨跌幅排序 Top 5，显示板块名 + 涨幅 |
+| 顶部：数据时间 | 页面标题下方显示「📅 数据日期: YYYY-MM-DD」（从 hikyuu 取最新交易日） |
+| 第 1 行：指数卡片 | 4 个 st.metric：上证指数 / 深证成指 / 沪深300 / 创业板指，每个卡片内显示涨跌幅 |
+| 第 2 行：涨跌统计 | 涨/跌/平 家数 + 柱子图，标题标注统计日期 |
+| 第 3 行：热门板块 | 行业板块按涨跌幅排序 Top N（默认 10，可调），点击板块名展开板块内股票明细 |
+
+#### 板块明细展开
+
+点击热门板块名称后展开子表格，显示：
+
+| 列 | 说明 |
+|----|------|
+| 代码 | 股票代码 |
+| 名称 | 股票名称 |
+| 最新价 | 最新收盘价 |
+| 涨跌幅 | 当日涨跌幅 |
+| 成交量 | 当日成交量 |
+
+子表格按涨跌幅降序排列，支持导出。
+
+#### 板块 Top N 可配置
+
+`get_top_blocks(n)` 默认 n=10（改为可配置），仪表盘页面提供 slider 控件。
 
 #### 数据函数（均复用已有）
 
@@ -121,17 +140,18 @@ blocks = sm.get_block_list()
 |------|------|------|
 | get_block_list | `(category: str) -> list[dict]` | 返回某分类下所有板块名 + 股票数 |
 | get_block_stocks | `(category: str, name: str) -> list` | 返回板块内股票列表（hikyuu Stock 对象） |
-| get_top_blocks | `(n: int) -> list[dict]` | 行业板块涨幅 Top N |
+| get_top_blocks | `(n: int=10) -> list[dict]` | 行业板块涨幅 Top N（默认 10） |
+| get_block_stock_details | `(category, name) -> list[dict]` | 板块内每只股票详情（代码/名称/最新价/涨跌幅/成交量） |
 
 ### 7.3 文件变更清单
 
 | 文件 | 操作 | 说明 |
 |------|------|------|
-| `screener/blocks.py` | 新增 | 板块查询模块 |
-| `screener/pages/04_仪表盘.py` | 新增 | 仪表盘首页 |
-| `screener/pages/01_筛选器.py` | 修改 | 新增行业/概念下拉 + 联动 |
-| `screener/engine.py` | 修改 | screen() 新增 block 参数 |
-| `screener/app.py` | 修改 | 新增 04 页面路由 |
+| `screener/blocks.py` | 修改 | 新增 get_block_stock_details，n 默认改为 10 |
+| `screener/pages/04_仪表盘.py` | 修改 | 数据日期 / 板块数 slider / 板块明细展开 |
+| `screener/pages/01_筛选器.py` | 已有 | — |
+| `screener/engine.py` | 已有 | — |
+| `screener/app.py` | 已有 | — |
 
 ## 八、交付物
 
