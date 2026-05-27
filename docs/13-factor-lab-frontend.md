@@ -72,8 +72,9 @@
 |------|------|------|
 | 指标卡片 | IC 均值、IC IR、IC>0 占比、覆盖率 | `st.metric` × 4 |
 | IC 序列 | 每日 IC 折线图 | Plotly `go.Scatter` |
+| 因子分布 | 直方图 + 密度曲线 | Plotly `go.Histogram` |
 | IC 衰减 + 分层收益 | 并排两列 | 左：IC 衰减柱状图，右：分层收益柱状图 |
-| 排名表格 | Top 20 + Bottom 20 | `st.dataframe` × 2 并排 |
+| 排名表格 | Top 20 + Bottom 20（含股票名称） | `st.dataframe` × 2 并排 |
 
 ## 四、页面注册
 

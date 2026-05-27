@@ -227,6 +227,32 @@ else:
         )
         st.plotly_chart(fig, use_container_width=True)
 
+    # 因子分布直方图
+    st.subheader("📊 因子分布")
+    latest_scores = result['scores'].iloc[-1].dropna()
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(
+        x=latest_scores.values,
+        nbinsx=50,
+        marker_color='steelblue',
+        opacity=0.75,
+        name='因子值',
+    ))
+    mean_val = latest_scores.mean()
+    median_val = latest_scores.median()
+    fig.add_vline(x=mean_val, line_dash="dash", line_color="red",
+                  annotation_text=f"均值 {mean_val:.2f}")
+    fig.add_vline(x=median_val, line_dash="dot", line_color="green",
+                  annotation_text=f"中位数 {median_val:.2f}")
+    fig.update_layout(
+        height=250,
+        margin=dict(l=0, r=0, t=10, b=0),
+        xaxis_title="因子值",
+        yaxis_title="频数",
+        showlegend=False,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
     # IC 衰减 + 分层收益（并排）
     decay = result.get('decay')
     qr = result.get('qr')
@@ -289,16 +315,32 @@ else:
 
     with col_t:
         st.markdown("**Top 20**")
+        top_codes = result['top20'].index.tolist()
+        top_names = []
+        for code in top_codes:
+            try:
+                top_names.append(sm[code].name)
+            except Exception:
+                top_names.append('')
         top_df = pd.DataFrame({
-            '代码': result['top20'].index,
+            '代码': top_codes,
+            '名称': top_names,
             '因子值': [f"{v:.2f}" for v in result['top20'].values],
-        }).reset_index(drop=True)
+        })
         st.dataframe(top_df, use_container_width=True, hide_index=True)
 
     with col_b:
         st.markdown("**Bottom 20**")
+        bottom_codes = result['bottom20'].index.tolist()
+        bottom_names = []
+        for code in bottom_codes:
+            try:
+                bottom_names.append(sm[code].name)
+            except Exception:
+                bottom_names.append('')
         bottom_df = pd.DataFrame({
-            '代码': result['bottom20'].index,
+            '代码': bottom_codes,
+            '名称': bottom_names,
             '因子值': [f"{v:.2f}" for v in result['bottom20'].values],
-        }).reset_index(drop=True)
+        })
         st.dataframe(bottom_df, use_container_width=True, hide_index=True)
